@@ -18,10 +18,11 @@
  *
 */
 
-const secs = document.querySelectorAll('.landing__container');
-const navbar__list = document.getElementById("navbar__list");
-let fragment = document.createDocumentFragment();
-const active_class = 'your-active-class';
+const sectionElments = document.querySelectorAll('main section');
+const navbarElment = document.getElementById("navbar__list");
+const fragment = document.createDocumentFragment();
+const activeClassForSectionBody = 'your-active-class';
+const activeClassForSectionLink = 'active';
 
 /**
  * End Global Variables
@@ -40,53 +41,68 @@ const active_class = 'your-active-class';
 // build the nav
 
 
-for(let sec of secs) {
-    const navbar_item = document.createElement('li');
+for(let sectionElment of sectionElments) {
+    const navbarItem = document.createElement('li');
 
-    const anc = document.createElement('a');
-    anc.href = '#' + sec.parentElement.id;
-    anc.textContent = sec.parentElement.dataset.nav;
-    anc.classList.add('menu__link');
+    const sectionLink = document.createElement('a');
+    sectionLink.href = '#' + sectionElment.id;
+    sectionLink.textContent = sectionElment.dataset.nav;
+    sectionLink.classList.add('menu__link');
+    sectionLink.id = getSectionLinkId(sectionElment.id);
+    navbarItem.appendChild(sectionLink);
 
-    navbar_item.appendChild(anc);
-
-    fragment.appendChild(navbar_item);
+    fragment.appendChild(navbarItem);
 }
 
-navbar__list.appendChild(fragment);
+navbarElment.appendChild(fragment);
 
 
 // Add class 'active' to section when near top of viewport
 
-navbar__list.addEventListener('click', function(event){
+navbarElment.addEventListener('click', function(event){
     event.preventDefault();
+    
+    try{
+        const desiredId = event.target.hash.slice(1);
 
-    const desiredId = event.target.href.split('#')[1];
-    const secId = document.getElementById(desiredId);
+        for(let sectionElment of sectionElments){
 
-    for(let sec of secs){
+            const sectionLinkId = getSectionLinkId(sectionElment.id);
+            const sectionLinkElment = document.getElementById(sectionLinkId);
 
-        if(sec.parentElement.id === desiredId){
-            sec.parentElement.classList.add(active_class);
+            if(sectionElment.id === desiredId){
+                sectionElment.classList.add(activeClassForSectionBody);
+                sectionLinkElment.classList.add(activeClassForSectionLink);
+            }
+            else{
+                sectionElment.classList.remove(activeClassForSectionBody);
+                sectionLinkElment.classList.remove(activeClassForSectionLink);
+            }
         }
-        else{
-            sec.parentElement.classList.remove(active_class);
-        }
+    }
+    catch{
     }
 })
 
 // Scroll to anchor ID using scrollTO event
 
-navbar__list.addEventListener('click', function(event){
+navbarElment.addEventListener('click', function(event){
     event.preventDefault();
 
-    const desiredId = event.target.href.split('#')[1];
-    const secId = document.getElementById(desiredId);
+    try{
+        const desiredId = event.target.hash.slice(1);
+        const secId = document.getElementById(desiredId);
+        const sectionLinks = document.querySelectorAll('ul li a');
+        const sectionLinkId = getSectionLinkId(desiredId)
 
-    window.scrollTo({
-        top: secId.offsetTop,
-        behavior: 'smooth'
-      });
+        window.scrollTo({
+            top: secId.offsetTop,
+            behavior: 'smooth'
+        });
+    }
+    catch{
+
+    }
 })
 
 /**
@@ -100,19 +116,34 @@ navbar__list.addEventListener('click', function(event){
 // Scroll to section on link click
 
 // Set sections as active
+const navBarHeight = document.querySelector('nav').offsetHeight;
 
-function set_active(){
-    console.log(1);
-    for(let sec of secs){
-        if(sec.parentElement.offsetTop <= window.pageYOffset && sec.parentElement.offsetTop + sec.parentElement.offsetHeight >= window.pageYOffset){
-            sec.parentElement.classList.add(active_class);
+function setActiveClassForSectionBody(){
+    const pageOffset = window.pageYOffset + navBarHeight;
+    handleActiveOverSections(pageOffset);
+}
+
+function handleActiveOverSections(currentPostion){
+
+    for(let sectionElment of sectionElments){
+        const sectionLinkId = getSectionLinkId(sectionElment.id);
+        const linkElment = document.getElementById(sectionLinkId);
+
+        if(sectionElment.offsetTop <=  currentPostion && currentPostion <= sectionElment.offsetTop + sectionElment.offsetHeight - navBarHeight){
+            sectionElment.classList.add(activeClassForSectionBody);
+            linkElment.classList.add(activeClassForSectionLink);
         }
         else{
-            sec.parentElement.classList.remove(active_class);
+            sectionElment.classList.remove(activeClassForSectionBody);
+            linkElment.classList.remove(activeClassForSectionLink);
         }
     }
 }
 
-document.addEventListener('wheel', set_active)
-document.addEventListener('click', set_active)
-window.addEventListener('load', set_active)
+function getSectionLinkId(sectionId){
+    return sectionId + 'link';
+}
+
+
+window.addEventListener('wheel', setActiveClassForSectionBody)
+window.addEventListener('load', setActiveClassForSectionBody)
